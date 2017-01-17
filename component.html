@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>vue.js学习-组件</title>
+	</head>
+	<body>
+		<div id="example">
+			<my-component></my-component>
+		</div>
+		
+		<div id="example-1">
+			<my-component></my-component>
+		</div>
+		
+		<div id="example-2">
+			<simple-counter></simple-counter>
+			<simple-counter></simple-counter>
+			<simple-counter></simple-counter>
+		</div>
+		
+		<div id="example-3">
+			<single-counter></single-counter>
+			<single-counter></single-counter>
+			<single-counter></single-counter>
+		</div>
+		
+		<div id="example-4">
+			<child message="hello!" dt = "feizi"></child>
+		</div>
+		
+		<div id="example-5">
+			<!-- kebab-case in HTML -->
+			<child-component my-message="hello!"></child-component>
+		</div>
+		
+		<div id="example-6">
+			<input v-model="parentMsg" />
+			<br />
+			<child-demo v-bind:my-message="parentMsg"></child-demo>
+		</div>
+		
+		<div id="counter-event-example">
+			<p>{{ total }}</p>
+			<button-counter v-on:increment="incrementTotal"></button-counter>
+			<button-counter v-on:increment="incrementTotal"></button-counter>
+		</div>
+		
+		<div id="example-7">
+			<currency-input v-model="price"></currency-input>
+		</div>
+		
+		<div id="example-8">
+			{{ message }}
+		</div>
+		
+		<div id="example-9">
+			<example></example>
+		</div>
+	</body>
+	
+	<script type="text/javascript" src="js/common/vue.js" ></script>
+	<script>
+		//全局注册
+		//注册组件（需要在根实例初始化之前注册）
+		Vue.component('my-component', {
+			template:'<div>A custom component!</div>'
+		})
+		
+		//创建跟实例
+		new Vue({
+			el:'#example'
+		})
+		
+		//局部注册
+		var Child = {
+			template:'<div>A custom component01!</div>'
+		}
+		
+		new Vue({
+			el:'#example-1',
+			components:{
+				//<my-component> 将只在父模板可用
+				'my-component':Child
+			}
+		})
+		
+		var data = { counter: 0 }
+		Vue.component('simple-counter', {
+			template:'<button v-on:click="counter += 1">{{ counter }}</button>',
+			//data 是一个函数，因此Vue不会警告
+			//但是我们为每一个组件返回了同一个对象引用
+			data:function(){
+				return data
+			}
+		})
+		
+		new Vue({
+			el:'#example-2'
+		})
+		
+		//组件注册 在跟实例初始化之前进行
+		Vue.component('single-counter', {
+			template:'<button v-on:click="counter += 1">{{ counter }}</button>',
+			data:function(){
+				return { counter: 0 }
+			}
+		})
+		
+		new Vue({
+			el:'#example-3'
+		})
+		
+		Vue.component('child', {
+			//声明props，父组件通过props向子组件传递数据
+			props:['message', 'dt'],
+			//就像data一样，prop可以用在模板内
+			//同样也可以在vm实例中像"this.message"这样使用
+			template:'<span>{{ message }} | {{ dt }}</span>'
+		})
+		
+		new Vue({
+			el:'#example-4'
+		})
+		
+		//注册组件（在根实例初始化之前进行）
+		Vue.component('child-component',{
+			//camelCase in javaScript
+			props:['myMessage'],
+			template:'<span>{{ myMessage }}</span>'
+		})
+		
+		//初始化根实例
+		new Vue({
+			el:'#example-5'
+		})
+		
+		Vue.component('child-demo',{
+			props:['myMessage'],
+			template:'<span>{{ myMessage }}</span>'
+		})
+		
+		new Vue({
+			el:'#example-6',
+			data:{
+				parentMsg:'Message from parent'
+			}
+		})
+		
+		Vue.component('example',{
+			props:{
+				//基础类型检测（'null'意思是任何类型都可以）
+				propA:Number,
+				//多种类型
+				propB:[String, Number],
+				//必传且是字符串
+				propC:{
+					type:String,
+					required:true
+				},
+				//数字，有默认值
+				propD:{
+					type:Number,
+					default:100
+				},
+				//数组/对象的默认值应当由一个工厂函数返回
+				propE:{
+					type:Object,
+					default:function(){
+						return { message:'hello' }
+					}
+				},
+				//自定义验证函数
+				propF:{
+					validator:function(value){
+						return value > 10
+					}
+				}
+			}
+		})
+		
+		Vue.component('button-counter',{
+			template:'<button v-on:click="increment">{{ counter }}</button>',
+			data:function(){
+				return { counter: 0 }
+			},
+			methods:{
+				increment:function(){
+					this.counter += 1
+					this.$emit('increment')
+				}
+			}
+		})
+		
+		new Vue({
+			el:'#counter-event-example',
+			data:{
+				total:0
+			},
+			methods:{
+				incrementTotal:function(){
+					this.total += 1
+				}
+			}
+		})
+		
+		/*Vue.component('currency-input',{
+			template: '\
+				<span>\
+					$\
+					<input\ 
+						ref="input"\ 
+						v-bind:value="value"\ 
+						v-on:input="updateValue($event.target.value)"\
+					>\
+				</span>\
+			',
+			props:['value'],
+			methods:{
+				//不是直接更新值，而是使用此方法来对输入值进行格式化和位数限制
+				updateValue: function(value){
+					var formattedValue = value
+					//删除两侧的空格符
+					.trim()
+					//保留2位小数位
+					.slice(0, value.indexOf('.') + 3)
+					
+					//如果值不统一，手动覆盖以保持一致
+					if(formattedValue !== value){
+						this.$refs.input.value = formattedValue
+					}
+					//通过input事件发出数值
+					this.$emit('input', Number(formattedValue))
+				}
+			}
+		})*/
+		
+		var vm = new Vue({
+			el:'#example-8',
+			data:{
+				message:'123'
+			}
+		})
+		
+		vm.message = 'new message'//更改数据
+		vm.$el.textContent === 'new message'//false
+		Vue.nextTick(function(){
+			vm.$el.textContent === 'new message'//true
+		})
+		
+		Vue.component('example', {
+			template:'<span>{{ message }}</span>',
+			data: function(){
+				return {
+					message: 'not updated'
+				}
+			},
+			methods:{
+				updateMessage: function(){
+					this.message = 'updated'
+					console.log('11111111111')
+					console.log(this.$el.textContent)//=>'没有更新'
+					this.$nextTick(function(){
+						console.log('2222222222')
+						console.log(this.$el.textContent)//=>'更新完成'
+					})
+				}
+			}
+		})
+		
+		new Vue({
+			el:'#example-9'
+		})
+	</script>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Vue.js学习-状态动画</title>
+		
+		<link rel="stylesheet" href="css/style.css" />
+	</head>
+	<body>
+		<div id="animated-number-demo">
+			<input v-model.number="number" type="number" step="20"/>
+			<p>{{ animatedNumber }}</p>
+		</div>
+		
+		<div id="demo-1">
+			<input 
+				v-model="colorQuery" 
+				v-on:keyup.enter="updateColor" 
+				placeholder="Enter a color" />
+			<button v-on:click="updateColor">Update</button>
+			<p>Preciew:</p>
+			<span v-bind:style="{ backgroundColor: tweenedCSSColor}"
+				class="demo-1-color-preview">
+			</span>
+			<p>{{ tweenedCSSColor }}</p>
+		</div>
+		
+		<div id="example-8">
+			<input v-model.number="firstNumber" type="number" step="20"/> +
+			<input v-model.number="secondNumber" type="number" step="20"/> = 
+			{{ result }}
+			<p>
+				<animated-integer v-bind:feizi="firstNumber"></animated-integer> + 
+				<animated-integer v-bind:feizi="secondNumber"></animated-integer> = 
+				<animated-integer v-bind:feizi="result"></animated-integer>
+			</p>
+		</div>
+		
+		<div id="example-9">
+			<a name="hello-world" href="#hello-world">
+				Hello world!
+			</a>
+			<anchored-heading :level="1">Hello!</anchred-heading>
+			<anchored-heading :level="2">Hello!</anchred-heading>
+			<anchored-heading :level="3">Hello!</anchred-heading>
+			<anchored-heading :level="4">Hello!</anchred-heading>
+			<anchored-heading :level="5">Hello!</anchred-heading>
+			<anchored-heading :level="6">Hello!</anchred-heading>
+		</div>
+	</body>
+	
+	<script type="text/javascript" src="js/common/vue.js" ></script>
+	<script src="https://unpkg.com/color-js@1.0.3/color.js"></script>
+	<script src="https://unpkg.com/tween.js@16.3.4"></script>
+	<script type="text/x-template" id="anchored-heading-template">
+		<div>
+			<h1 v-if="level === 1">
+				<slot></slot>
+			</h1>
+			<h2 v-if="level === 2">
+				<slot></slot>
+			</h2>
+			<h3 v-if="level === 3">
+				<slot></slot>
+			</h3>
+			<h4 v-if="level === 4">
+				<slot></slot>
+			</h4>
+			<h5 v-if="level === 5">
+				<slot></slot>
+			</h5>
+			<h6 v-if="level === 6">
+				<slot></slot>
+			</h6>
+		</div>
+	</script>
+	<script>
+		new Vue({
+			el:'#animated-number-demo',
+			data:{
+				number:0,
+				animatedNumber:0
+			},
+			watch:{
+				number: function(newValue, oldValue){
+					var vm = this
+					function animate(time){
+						requestAnimationFrame(animate)
+						TWEEN.update(time)
+					}
+					new TWEEN.Tween({ tweeningNumber: oldValue })
+					.easing(TWEEN.Easing.Quadratic.Out)
+					.to({ tweeningNumber: newValue }, 500)
+					.onUpdate(function(){
+						vm.animatedNumber = this.tweeningNumber.toFixed(0)
+					})
+					.start()
+					animate()
+				}
+			}
+		})
+		
+		var Color = net.brehaut.Color
+		
+		new Vue({
+			el: '#demo-1',
+			data: {
+				colorQuery: '',
+				color: {
+					red: 0,
+					green: 0,
+					blue: 0,
+					alpha: 1
+				},
+				tweenedColor: {}
+			},
+			created: function(){
+				this.tweenedColor = Object.assign({}, this.color)
+			},
+			watch: {
+				color: function(){
+					function animate(time){
+						requestAnimationFrame(animate)
+						TWEEN.update(time)
+					}
+					new TWEEN.Tween(this.tweenedColor)
+						.to(this.color, 750)
+						.start()
+					animate()
+				}
+			},
+			computed: {
+				tweenedCSSColor: function(){
+					return new Color({
+						red: this.tweenedColor.red,
+						green: this.tweenedColor.green,
+						blue: this.tweenedColor.blue,
+						alpha: this.tweenedColor.alpha
+					}).toCSS()
+				}
+			},
+			methods: {
+				updateColor: function(){
+					this.color = new Color(this.colorQuery).toRGB()
+					this.colorQuery = ''
+				}
+			}
+		})
+		
+		//任何整数都可以执行动画
+		//组件化使我们的界面十分清晰
+		//可以支持更多更复杂的动态过渡
+		//strategies.
+		Vue.component('animated-integer',{
+			template:'<span>{{ tweeningValue }}</span>',
+			props:{
+				feizi:{
+					type:Number,
+					required:true
+				}
+			},
+			data: function(){
+				return {
+					tweeningValue: 0
+				}
+			},
+			watch:{
+				feizi: function(newValue, oldValue){
+					this.tween(oldValue, newValue)
+				}
+			},
+			mounted: function(){
+				this.tween(0, this.feizi)
+			},
+			methods: {
+				tween: function(startValue, endValue){
+					var vm = this
+					function animate(time){
+						requestAnimationFrame(animate)
+						TWEEN.update(time)
+					}
+					new TWEEN.Tween({ tweeningValue: startValue })
+						.to({ tweeningValue: endValue }, 500)
+						.onUpdate(function(){
+							vm.tweeningValue = this.tweeningValue.toFixed(0)
+						})
+						.start()
+					animate()
+				}
+			}
+		})
+		
+		//All complexity has now been removed from the main Vue instance!
+		new Vue({
+			el: '#example-8',
+			data: {
+				firstNumber: 20,
+				secondNumber: 40
+			},
+			computed: {
+				result: function(){
+					return this.firstNumber + this.secondNumber
+				}
+			}
+		})
+		
+		/*Vue.Component('anchored-heading', {
+			template: '#anchored-heading-template',
+			props:{
+				level:{
+					type: Number,
+					required: true
+				}
+			}
+		})*/
+		
+		Vue.component('anchored-heading', {
+			render: function(createElement){
+				return createElement(
+					'h' + this.level, //tag name 标签名称
+					this.$slots.default //子组件中的阵列
+				)
+			},
+			props:{
+				level:{
+					type: Number,
+					required: true
+				}
+			}
+		})
+		
+		new Vue({
+			el:'#example-9'
+		})
+	</script>
+</html>

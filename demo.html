@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Vue.js学习</title>
+	</head>
+	<body>
+		<ul id="example-1">
+			<li v-for="item in items">
+				{{ item.message }}
+			</li>
+		</ul>
+		
+		<ul id="example-2">
+			<li v-for="(item, index) in items">
+				{{ parentMessage }} - {{ index }} - {{ item.message }}
+			</li>
+		</ul>
+		
+		<!-- 使用of代替in作为分隔符 -->
+		<ul id="example-3">
+			<li v-for="item of items">
+				{{ item.message }}
+			</li>
+		</ul>
+		
+		<ul id="example-4">
+			<template v-for="item in items">
+				<li>{{ item.msg }}</li>
+				<li class="divider"></li>
+			</template>
+		</ul>
+		
+		<ul id="repeat-object" class="demo">
+			<li v-for="(value, key, index) in object">
+				{{ index}}) {{ key }} : {{ value }}
+			</li>
+		</ul>
+		
+		<!-- 整数迭代v-for-->
+		<div>
+			<span v-for="n in 10">{{ n }}</span>
+		</div>
+		
+		<my-component 
+			v-for="(item, index) in items" 
+			v-bind:item="item" 
+			v-bind:index="index">
+		</my-component>
+		
+		<div id="todo-list-example">
+			<input 
+				v-model="newTodoText" 
+				v-on:keyup.enter="addNewTodo" 
+				placeholder="Add a todo"/>
+			
+			<ul>
+				<li
+					is = "todo-item" 
+					v-for="(todo, index) in todos" 
+					v-bind:title="todo" 
+					v-on:remove="todos.splice(index, 1)">
+				</li>
+			</ul>
+		</div>
+	</body>
+	
+	<script type="text/javascript" src="js/common/vue.js" ></script>
+	<script>
+		import Store from 'js/store.js'
+		
+		console.log(Store)
+	
+		var example1 = new Vue({
+			el:'#example-1',
+			data:{
+				items:[
+					{ message: 'Foo' },
+					{ message: 'Bar' }
+				]
+			}
+		})
+		
+		var example2 = new Vue({
+			el:'#example-2',
+			data:{
+				parentMessage:'Parent',
+				items:[
+					{ message:'Foo' },
+					{ message:'Bar' }
+				]
+			}
+		})
+		
+		var example3 = new Vue({
+			el:'#example-3',
+			data:{
+				items:[
+					{ message:'Foo' },
+					{ message:'Bar' }
+				]
+			}
+		})
+		
+		var example4 = new Vue({
+			el:'#example-4',
+			data:{
+				items:[
+					{ msg:'Foo' },
+					{ msg:'Bar' }
+				]
+			}
+		})
+		
+		var repeatObject = new Vue({
+			el:'#repeat-object',
+			data:{
+				object:{
+					FirstName:'John',
+					LastName:'Doe',
+					Age:30
+				}
+			}
+		})
+		
+		Vue.component('todo-item',{
+			template:'\
+				<li>\
+					{{ title }}\
+					<button v-on:click="$emit(\'remove\')">X</button>\
+				</li>\
+			',
+			props:['title']
+		})
+		
+		new Vue({
+			el:'#todo-list-example',
+			data:{
+				newTodoText: '',
+				todos: [
+					'Do the dishes',
+					'Take out the trash',
+					'Mow the lawn'
+				]
+			},
+			methods:{
+				addNewTodo: function(){
+					this.todos.push(this.newTodoText)
+					this.newTodoText = ''
+				}
+			}
+		})
+		
+		
+	</script>
+</html>

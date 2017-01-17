@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Vue.js学习-导航切换</title>
+		<link rel="stylesheet" href="css/navigater.css" />
+	</head>
+	<body>
+		<div id="main">
+		    <nav @click.prevent>
+		        <a v-for="item in items" :class="{'show': item.active}" @click="makeActive(item, $index)">{{ item.name }}</a>
+		    </nav>
+		    <p>You chose <b>{{active}}</b></p>
+		</div>
+	</body>
+	
+	<script type="text/javascript" src="js/common/vue.js" ></script>
+	<script>
+		var vm = new Vue({
+			el:'#main',
+		    data:{
+		    	active:'HTML',
+		    	items:[
+		        	{name:'HTML', active:true},
+		            {name:'CSS', active:false},
+		            {name:'JavaScript', active:false},
+		            {name:'Vue.js', active:false}
+		        ]
+		    },
+		    methods: {
+				makeActive: function(item, index){
+					this.active = item.name;
+		            for(var i=0; i<this.items.length;i++){
+		            	this.items[i].active = false;
+		            }
+		            this.items[index].active = true;
+				}
+			}
+		});
+	</script>
+</html>
